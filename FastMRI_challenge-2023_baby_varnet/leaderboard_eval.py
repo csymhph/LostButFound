@@ -123,5 +123,6 @@ if __name__ == '__main__':
     args.your_data_path = args.path_your_data / "acc8"
     SSIM_acc8 = forward(args)
     
-
+    print("Leaderboard Dataset SSIM_acc4 : {:.4f}".format((SSIM_acc4 + SSIM_acc4) / 2))
+    print("Leaderboard Dataset SSIM_acc8 : {:.4f}".format((SSIM_acc8 + SSIM_acc8) / 2))
     print("Leaderboard Dataset SSIM_average : {:.4f}".format((SSIM_acc4 + SSIM_acc8) / 2))
