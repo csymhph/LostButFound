@@ -155,17 +155,17 @@ def train(args):
     val_loader = create_data_loaders(data_path = args.data_path_val, args = args)
     
     val_loss_log = np.empty((0, 2))
-    train_loss_list=[]
+    
+    train_loss_list = []
+    val_loss_list = []
     
     for epoch in range(start_epoch, args.num_epochs):
         print(f'Epoch #{epoch:2d} ............... {args.net_name} ...............')
         
         train_loss, train_time = train_epoch(args, epoch, model, train_loader, optimizer, loss_type)\
         
-        train_loss_list.append(train_loss)
-        
-        
         val_loss, num_subjects, reconstructions, targets, inputs, val_time = validate(args, model, val_loader)
+        
         
         val_loss_log = np.append(val_loss_log, np.array([[epoch, val_loss]]), axis=0)
         file_path = os.path.join(args.val_loss_dir, "val_loss_log")
@@ -178,7 +178,12 @@ def train(args):
 
 
         val_loss = val_loss / num_subjects
-
+        
+        train_loss = train_loss.to('cpu')
+        val_loss = val_loss.to('cpu')
+        train_loss_list.append(train_loss)
+        val_loss_list.append(val_loss)
+        
         is_new_best = val_loss < best_val_loss
         best_val_loss = min(best_val_loss, val_loss)
 
@@ -196,8 +201,17 @@ def train(args):
                 f'ForwardTime = {time.perf_counter() - start:.4f}s',
             )
     
-    x=np.arange(0, args.num_epochs)
-    y=np.array(train_loss_list)
+    x = np.arange(0, args.num_epochs)
+    y1 = np.array(train_loss_list)
+    y2 = np.array(val_loss_list)
     
-    plt.plot(x, y, 'r-.') 
-    plt.savefig('loss.png', dpi=300)
+    plt.plot(x, y1, 'r-.', label = 'train')
+    plt.plot(x, y2, 'b-.', label = 'val')
+    plt.legend()
+     
+    plt.title('Loss by Epoch')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    
+    
+    plt.savefig('loss1.png', dpi=300)
