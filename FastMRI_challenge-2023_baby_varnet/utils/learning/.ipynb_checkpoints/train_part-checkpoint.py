@@ -31,7 +31,10 @@ def train_epoch(args, epoch, model, data_loader, optimizer, loss_type):
         maximum = maximum.cuda(non_blocking=True)
 
         output = model(kspace, mask)
-        loss = loss_type(output, target, maximum)
+        if epoch<10:
+            loss=loss_type(output, target, maximum)
+        else:
+            loss = loss_type(output, target)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -144,7 +147,8 @@ def train(args):
     model.load_state_dict(pretrained)
     """
 
-    loss_type = SSIMLoss().to(device=device)
+    loss_type_1 = SSIMLoss().to(device=device)
+    loss_type_2 = nn.MSELoss().to(device=device)
     optimizer = torch.optim.Adam(model.parameters(), args.lr)
 
     best_val_loss = 1.
@@ -162,7 +166,12 @@ def train(args):
     for epoch in range(start_epoch, args.num_epochs):
         print(f'Epoch #{epoch:2d} ............... {args.net_name} ...............')
         
-        train_loss, train_time = train_epoch(args, epoch, model, train_loader, optimizer, loss_type)\
+        if epoch<10:
+            loss_type=loss_type_1
+        else:
+            loss_type=loss_type_2
+        
+        train_loss, train_time = train_epoch(args, epoch, model, train_loader, optimizer, loss_type)
         
         val_loss, num_subjects, reconstructions, targets, inputs, val_time = validate(args, model, val_loader)
         
@@ -179,8 +188,6 @@ def train(args):
 
         val_loss = val_loss / num_subjects
         
-        train_loss = train_loss.to('cpu')
-        val_loss = val_loss.to('cpu')
         train_loss_list.append(train_loss)
         val_loss_list.append(val_loss)
         
@@ -200,7 +207,8 @@ def train(args):
             print(
                 f'ForwardTime = {time.perf_counter() - start:.4f}s',
             )
-    
+    train_loss_list = train_loss_list.to('cpu')
+    val_loss_list = val_loss_list.to('cpu')
     x = np.arange(0, args.num_epochs)
     y1 = np.array(train_loss_list)
     y2 = np.array(val_loss_list)
