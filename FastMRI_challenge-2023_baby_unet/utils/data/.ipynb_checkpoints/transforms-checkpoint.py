@@ -37,7 +37,6 @@ class KspaceTransform:
         else: 
             target = -1
             maximum = -1
-            
         kspace = to_tensor(input)
         kspace = torch.stack((kspace.abs, kspace.angle), dim=-1)
         mask = torch.from_numpy(mask.reshape(1, 1, kspace.shape[-2], 1).astype(np.folat32)).byte()
