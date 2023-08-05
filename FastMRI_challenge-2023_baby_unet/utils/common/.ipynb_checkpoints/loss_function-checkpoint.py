@@ -15,7 +15,7 @@ class SSIMLoss(nn.Module):
     SSIM loss module.
     """
 
-    def __init__(self, win_size: int = 11, k1: float = 0.01, k2: float = 0.03):
+    def __init__(self, win_size: int = 7, k1: float = 0.01, k2: float = 0.03):
         """
         Args:
             win_size: Window size for SSIM calculation.

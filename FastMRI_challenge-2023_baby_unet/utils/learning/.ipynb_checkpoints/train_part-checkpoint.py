@@ -22,9 +22,9 @@ def train_epoch(args, epoch, model, data_loader, optimizer, loss_type):
         input = input.cuda(non_blocking=True)
         target = target.cuda(non_blocking=True)
         maximum = maximum.cuda(non_blocking=True)
-
-        output = model(input)
-        
+   
+        output=model(input)
+    
         # Mask output and target, when epoch exceeds 30
         if epoch>30:
             loss = loss_type(output, target, maximum, masked=True)
@@ -118,7 +118,7 @@ def train(args):
 
     
     train_loader = create_data_loaders(data_path_1 = args.data_path_train, data_path_2 = args.data_path_phase, args = args, shuffle=True)
-    val_loader = create_data_loaders(data_path = args.data_path_val, args = args)
+    val_loader = create_data_loaders(data_path_1 = args.data_path_val, data_path_2 = 'init', args = args)
     train_loss_list = []
     val_loss_list = []
 

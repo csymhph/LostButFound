@@ -3,32 +3,38 @@ import random
 from utils.data.transforms import DataTransform
 from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
+import os
+
 
 class SliceData(Dataset):
-    def __init__(self, root1, root2='init', transform, input_key, target_key, forward=False):
+    def __init__(self, root1, root2, transform, input_key, target_key, forward=False):
         self.transform = transform
         self.input_key = input_key
         self.target_key = target_key
         self.forward = forward
         self.examples = [] 
         
-        files = list(Path(root1).iterdir())
-        files_2 = list(Path(root2).iterdir())
+        files_1 = list(Path(root1).iterdir())
         
         for fname in sorted(files_1):
-            num_slices = self._get_metadata(fname)
-
-            self.examples += [
-                (fname, slice_ind) for slice_ind in range(num_slices)
-            ]
-            
-        if root2 != 'init'
-            for fname in sorted(files_2):
+            if str(fname).endswith(".h5"):
                 num_slices = self._get_metadata(fname)
 
                 self.examples += [
                     (fname, slice_ind) for slice_ind in range(num_slices)
                 ]
+            
+        if root2 != 'init':
+            
+            files_2 = list(Path(root2).iterdir())
+            
+            for fname in files_2:
+                if str(fname).endswith(".h5"):
+                    num_slices = self._get_metadata(fname)
+
+                    self.examples += [
+                        (fname, slice_ind) for slice_ind in range(num_slices)
+                    ]
 
     def _get_metadata(self, fname):
         with h5py.File(fname, "r") as hf:

@@ -38,6 +38,7 @@ class Unet(nn.Module):
     def forward(self, input):
         input, mean, std = self.norm(input)
         input = input.unsqueeze(1)
+        
         d1 = self.first_block(input)
         d2 = self.down1(d1)
         d3 = self.down2(d2)
