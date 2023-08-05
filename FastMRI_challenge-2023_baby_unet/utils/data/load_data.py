@@ -5,20 +5,30 @@ from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 
 class SliceData(Dataset):
-    def __init__(self, root, transform, input_key, target_key, forward=False):
+    def __init__(self, root1, root2='init', transform, input_key, target_key, forward=False):
         self.transform = transform
         self.input_key = input_key
         self.target_key = target_key
         self.forward = forward
-        self.examples = []
+        self.examples = [] 
         
-        files = list(Path(root).iterdir())
-        for fname in sorted(files):
+        files = list(Path(root1).iterdir())
+        files_2 = list(Path(root2).iterdir())
+        
+        for fname in sorted(files_1):
             num_slices = self._get_metadata(fname)
 
             self.examples += [
                 (fname, slice_ind) for slice_ind in range(num_slices)
             ]
+            
+        if root2 != 'init'
+            for fname in sorted(files_2):
+                num_slices = self._get_metadata(fname)
+
+                self.examples += [
+                    (fname, slice_ind) for slice_ind in range(num_slices)
+                ]
 
     def _get_metadata(self, fname):
         with h5py.File(fname, "r") as hf:
@@ -37,10 +47,18 @@ class SliceData(Dataset):
             else:
                 target = hf[self.target_key][dataslice]
             attrs = dict(hf.attrs)
-        return self.transform(input, target, attrs, fname.name, dataslice)
+        
+        """
+        returns input, target, maximum, fname, slice by __call__():
+        input = to_tensor(input)
+        target = to_tensor(target)
+        if isforward is true, set target, maximum to -1
+        """
+        return self.transform(input, target, attrs, fname.name, dataslice) 
+    
 
 
-def create_data_loaders(data_path, args, shuffle=True, isforward=False):
+def create_data_loaders(data_path_1, data_path_2, args, shuffle=True, isforward=False):
     if isforward == False:
         max_key_ = args.max_key
         target_key_ = args.target_key
@@ -48,7 +66,9 @@ def create_data_loaders(data_path, args, shuffle=True, isforward=False):
         max_key_ = -1
         target_key_ = -1
     data_storage = SliceData(
-        root=data_path,
+        root1=data_path_1,
+        root2=data_path_2,
+        # initialize isforward, max_key_
         transform=DataTransform(isforward, max_key_),
         input_key=args.input_key,
         target_key=target_key_,

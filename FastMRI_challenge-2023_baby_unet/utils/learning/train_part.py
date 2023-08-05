@@ -24,7 +24,13 @@ def train_epoch(args, epoch, model, data_loader, optimizer, loss_type):
         maximum = maximum.cuda(non_blocking=True)
 
         output = model(input)
-        loss = loss_type(output, target, maximum)
+        
+        # Mask output and target, when epoch exceeds 30
+        if epoch>30:
+            loss = loss_type(output, target, maximum, masked=True)
+        else:
+            loss = loss_type(output, target, maximum, masked=False)
+            
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -103,15 +109,15 @@ def train(args):
     model.to(device=device)
     loss_type = SSIMLoss().to(device=device)
     optimizer = torch.optim.Adam(model.parameters(), args.lr)
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer = optimizer, lr_lambda = lambda epoch: 0.9 ** epoch )
+    #scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer = optimizer, lr_lambda = lambda epoch: 0.9 ** epoch )
     
-    #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
 
     best_val_loss = 1.
     start_epoch = 0
 
     
-    train_loader = create_data_loaders(data_path = args.data_path_train, args = args, shuffle=True)
+    train_loader = create_data_loaders(data_path_1 = args.data_path_train, data_path_2 = args.data_path_phase, args = args, shuffle=True)
     val_loader = create_data_loaders(data_path = args.data_path_val, args = args)
     train_loss_list = []
     val_loss_list = []

@@ -8,13 +8,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import matplotlib.pyplot as plt
 
 class SSIMLoss(nn.Module):
     """
     SSIM loss module.
     """
 
-    def __init__(self, win_size: int = 7, k1: float = 0.01, k2: float = 0.03):
+    def __init__(self, win_size: int = 11, k1: float = 0.01, k2: float = 0.03):
         """
         Args:
             win_size: Window size for SSIM calculation.
@@ -28,9 +29,21 @@ class SSIMLoss(nn.Module):
         NP = win_size ** 2
         self.cov_norm = NP / (NP - 1)
 
-    def forward(self, X, Y, data_range):
+    def forward(self, X, Y, data_range, masked=False):
         X = X.unsqueeze(1)
         Y = Y.unsqueeze(1)
+            
+        if masked:
+            mask = torch.zeros_like(X)  # Match size to X and Y
+            mask[Y > 5e-5] = 1
+            kernel = torch.ones(1, 1, 3, 3, device=Y.device)
+            mask = F.conv2d(mask, kernel, padding=1)
+            mask = F.conv2d(mask, kernel, padding=14)
+            mask = mask[:, :, :X.size(2), :X.size(3)]  # Crop to match size of X and Y
+            
+            X = mask * X
+            Y = mask * Y
+            
         data_range = data_range[:, None, None, None]
         C1 = (self.k1 * data_range) ** 2
         C2 = (self.k2 * data_range) ** 2
@@ -50,5 +63,6 @@ class SSIMLoss(nn.Module):
         )
         D = B1 * B2
         S = (A1 * A2) / D
+        
 
         return 1 - S.mean()
