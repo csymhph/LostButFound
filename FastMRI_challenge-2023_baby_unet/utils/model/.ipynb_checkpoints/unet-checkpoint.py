@@ -11,17 +11,17 @@ class Unet(nn.Module):
         self.out_chans = out_chans
         
 
-        self.first_block = ConvBlock(in_chans, 32, drop_prob)
-        self.down1 = Down(32, 64, drop_prob)
-        self.down2 = Down(64, 128, drop_prob)
-        self.down3 = Down(128, 256, drop_prob)
-        self.down4 = Down(256, 512, drop_prob)
-        self.up1 = Up(512, 256, drop_prob)
-        self.up2 = Up(256, 128, drop_prob)
-        self.up3 = Up(128, 64, drop_prob)
-        self.up4 = Up(64, 32, drop_prob)
+        self.first_block = ConvBlock(in_chans, 64, drop_prob)
+        self.down1 = Down(64, 128, drop_prob)
+        self.down2 = Down(128, 256, drop_prob)
+        self.down3 = Down(256, 512, drop_prob)
+        self.down4 = Down(512, 1024, drop_prob)
+        self.up1 = Up(1024, 512, drop_prob)
+        self.up2 = Up(512, 256, drop_prob)
+        self.up3 = Up(256, 128, drop_prob)
+        self.up4 = Up(128, 64, drop_prob)
         
-        self.last_block = nn.Conv2d(32, out_chans, kernel_size=1)
+        self.last_block = nn.Conv2d(64, out_chans, kernel_size=1)
         self.dropout = drop_prob
 
     def norm(self, x):
