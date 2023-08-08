@@ -24,17 +24,18 @@ class SliceData(Dataset):
                     (fname, slice_ind) for slice_ind in range(num_slices)
                 ]
             
-        if root2 != 'init':
-            
-            files_2 = list(Path(root2).iterdir())
-            
-            for fname in files_2:
-                if str(fname).endswith(".h5"):
-                    num_slices = self._get_metadata(fname)
+        if not root2 == 'init':
+            for roots in root2:
 
-                    self.examples += [
-                        (fname, slice_ind) for slice_ind in range(num_slices)
-                    ]
+                files_2 = list(Path(roots).iterdir())
+
+                for fname in files_2:
+                    if str(fname).endswith(".h5"):
+                        num_slices = self._get_metadata(fname)
+
+                        self.examples += [
+                            (fname, slice_ind) for slice_ind in range(num_slices)
+                        ]
 
     def _get_metadata(self, fname):
         with h5py.File(fname, "r") as hf:
@@ -51,7 +52,7 @@ class SliceData(Dataset):
             if self.forward:
                 target = -1
             else:
-                target = hf[self.target_key][dataslice].astype('int32')
+                target = hf[self.target_key][dataslice]
             attrs = dict(hf.attrs)
         
         """
