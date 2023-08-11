@@ -18,7 +18,7 @@ def parse():
     parser.add_argument('-e', '--num-epochs', type=int, default=3, help='Number of epochs')
     parser.add_argument('-l', '--lr', type=float, default=1e-3, help='Learning rate')
     parser.add_argument('-r', '--report-interval', type=int, default=500, help='Report interval')
-    parser.add_argument('-n', '--net-name', type=Path, default='test_Unet', help='Name of network')
+    parser.add_argument('-n', '--net-name', type=Path, default='rudanet', help='Name of network')
     parser.add_argument('-t', '--data-path-train', type=Path, default='/Data/train/image/', help='Directory of train data')
     parser.add_argument('-v', '--data-path-val', type=Path, default='/Data/val/image/', help='Directory of validation data')
     parser.add_argument('--in-chans', type=int, default=1, help='Size of input channels for network')
@@ -28,7 +28,7 @@ def parse():
     parser.add_argument('--max-key', type=str, default='max', help='Name of max key in attributes')
     parser.add_argument('--seed', type=int, default=430, help='Fix random seed')
     parser.add_argument('-p', '--drop-prob', type=float, default = 0.0, help='Dropout probability')
-    parser.add_argument('--data-path-aug', nargs='+', type=Path, default='/root/LostButFound/Datastorage/Real/Real/', help='Directory of augmented train data')
+    parser.add_argument('--data-path-aug', nargs='+', type=Path, default='/root/LostButFound/Datastorage/', help='Directory of augmented train data')
 
     args = parser.parse_args()
     return args

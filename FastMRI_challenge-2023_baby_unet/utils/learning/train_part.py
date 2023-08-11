@@ -117,8 +117,8 @@ def train(args):
     start_epoch = 0
 
     
-    train_loader = create_data_loaders(data_path_1 = args.data_path_train, data_path_2 = args.data_path_aug, args = args, shuffle=True)
-    val_loader = create_data_loaders(data_path_1 = args.data_path_val, data_path_2 = 'init', args = args, shuffle=True)
+    train_loader = create_data_loaders(data_path_1 = args.data_path_train, data_path_2 = 'init', args = args, shuffle=True)
+    val_loader = create_data_loaders(data_path_1 = args.data_path_val, data_path_2 = 'init', args = args)
     train_loss_list = []
     val_loss_list = []
 

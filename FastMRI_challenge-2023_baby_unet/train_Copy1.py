@@ -1,6 +1,6 @@
 import argparse
 import shutil
-from utils.learning.train_part import train
+from utils.learning.train_part_Copy1 import train
 from pathlib import Path
 
 import os, sys
