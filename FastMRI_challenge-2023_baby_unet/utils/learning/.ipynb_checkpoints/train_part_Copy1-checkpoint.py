@@ -173,18 +173,18 @@ def train(args):
     best_val_loss = 1.
     start_epoch = 0
 
-    train_loader_list = [create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_train/Real/Real/', data_path_2 = 'init', args = args, shuffle=True),
-        create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_train/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
-        create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_train/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
-        create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_train/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True)
+    train_loader_list = [create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Real/', data_path_2 = 'init', args = args, shuffle=True),
+        create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
+        create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
+        create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True)
         ]
     
     
     val_loader_list = [
-        create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_val/Real/Real/', data_path_2 = 'init', args = args), 
-        create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_val/Real/Imaginary/', data_path_2 = 'init', args = args), 
-        create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_val/Imaginary/Real/', data_path_2 = 'init', args = args), 
-        create_data_loaders(data_path_1 = '/root/LostButFound/Datastorage_val/Imaginary/Imaginary/', data_path_2 = 'init', args = args)
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Real/', data_path_2 = 'init', args = args), 
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Imaginary/', data_path_2 = 'init', args = args), 
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Real/', data_path_2 = 'init', args = args), 
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Imaginary/', data_path_2 = 'init', args = args)
         ]
     
     optimizer_1 = torch.optim.NAdam(model_1.parameters(), args.lr)

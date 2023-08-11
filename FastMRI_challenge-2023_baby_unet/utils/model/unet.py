@@ -23,7 +23,7 @@ class Unet(nn.Module):
 
 
         
-        self.last_block = nn.Conv2d(64, out_chans, kernel_size=1)
+        self.last_block = nn.Conv2d(32, out_chans, kernel_size=1)
         self.dropout = drop_prob
 
     def norm(self, x):
