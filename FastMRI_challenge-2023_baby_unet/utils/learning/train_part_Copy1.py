@@ -119,9 +119,7 @@ def validate(args, model_list, data_loader_list):
         combined_input[fname] = np.stack(
             [out for _, out in sorted(combined_input[fname].items())]
         )
-            
- 
-    metric_loss = sum([ssim_loss(combined_target[fname], combined_recon[fname]) for fname in combined_recon])
+        metric_loss = sum([ssim_loss(combined_target[fname], combined_recon[fname]) for fname in combined_recon])
     num_subjects = len(combined_recon)
     
     return metric_loss, num_subjects, combined_recon, combined_target, combined_input, time.perf_counter() - start
