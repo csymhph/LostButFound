@@ -99,7 +99,6 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_val_loss, is_new_bes
     if is_new_best:
         shutil.copyfile(exp_dir / 'model.pt', exp_dir / 'best_model.pt')
 
-
         
 def train(args):
     device = torch.device(f'cuda:{args.GPU_NUM}' if torch.cuda.is_available() else 'cpu')
