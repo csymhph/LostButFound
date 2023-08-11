@@ -99,7 +99,6 @@ def save_model(args, exp_dir, epoch, model, optimizer, best_val_loss, is_new_bes
     if is_new_best:
         shutil.copyfile(exp_dir / 'model.pt', exp_dir / 'best_model.pt')
 
-
         
 def train(args):
     device = torch.device(f'cuda:{args.GPU_NUM}' if torch.cuda.is_available() else 'cpu')
@@ -109,10 +108,10 @@ def train(args):
     model = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model.to(device=device)
     loss_type = SSIMLoss().to(device=device)
-    optimizer = torch.optim.Adam(model.parameters(), args.lr)
+    optimizer = torch.optim.NAdam(model.parameters(), args.lr)
     #scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer = optimizer, lr_lambda = lambda epoch: 0.95 ** epoch )
     
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=0)
 
     best_val_loss = 1.
     start_epoch = 0
