@@ -109,17 +109,17 @@ def train(args):
     model = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model.to(device=device)
     loss_type = SSIMLoss().to(device=device)
-    optimizer = torch.optim.Adam(model.parameters(), args.lr)
+    optimizer = torch.optim.NAdam(model.parameters(), args.lr)
     #scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer = optimizer, lr_lambda = lambda epoch: 0.95 ** epoch )
     
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=0)
 
     best_val_loss = 1.
     start_epoch = 0
 
     
-    train_loader = create_data_loaders(data_path_1 = args.data_path_train, data_path_2 = args.data_path_aug, args = args, shuffle=True)
-    val_loader = create_data_loaders(data_path_1 = args.data_path_val, data_path_2 = 'init', args = args, shuffle=True)
+    train_loader = create_data_loaders(data_path_1 = args.data_path_train, data_path_2 = 'init', args = args, shuffle=True)
+    val_loader = create_data_loaders(data_path_1 = args.data_path_val, data_path_2 = 'init', args = args)
     train_loss_list = []
     val_loss_list = []
 
