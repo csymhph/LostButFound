@@ -98,7 +98,7 @@ def validate(args, model_list, data_loader_list):
    
     for fname in reconstructions[0]:
         for slices in range(reconstructions[0][fname].shape[0]):
-            combined_recon[fname][slices] = np.abs(fft2(reconstructions[0][fname][slices] + 1j*reconstructions[1][fname][slices]) + 1j*fft2(reconstructions[2][fname][slices] + 1j*reconstructions[3][fname][slices]))
+            combined_recon[fname][slices] = np.sqrt(np.abs(reconstructions[0][fname][slices] ** 2 + reconstructions[1][fname][slices] ** 2 + reconstructions[2][fname][slices] ** 2 + reconstructions[3][fname][slices] ** 2 + 2 * reconstructions[4][fname][slices] - 2 * reconstructions[5][fname][slices]))
             
         combined_recon[fname] = np.stack(
             [out for _, out in sorted(combined_recon[fname].items())]
@@ -106,7 +106,7 @@ def validate(args, model_list, data_loader_list):
 
     for fname in targets[0]:
         for slices in range(reconstructions[0][fname].shape[0]):
-            combined_target[fname][slices] = np.abs(fft2(targets[0][fname][slices] + 1j*targets[1][fname][slices]) + 1j*fft2(targets[2][fname][slices] + 1j*targets[3][fname][slices]))
+            combined_target[fname][slices] = np.sqrt(np.abs(targets[0][fname][slices] ** 2 + targets[1][fname][slices] ** 2 + targets[2][fname][slices] ** 2 + targets[3][fname][slices] ** 2 + 2 * targets[4][fname][slices] - 2 * targets[5][fname][slices]))
         
         combined_target[fname] = np.stack(
             [out for _, out in sorted(combined_target[fname].items())]
@@ -114,7 +114,7 @@ def validate(args, model_list, data_loader_list):
         
     for fname in inputs[0]:
         for slices in range(reconstructions[0][fname].shape[0]):
-            combined_input[fname][slices] = np.abs(fft2(inputs[0][fname][slices] + 1j*inputs[1][fname][slices]) + 1j*fft2(inputs[2][fname][slices] + 1j*inputs[3][fname][slices]))
+            combined_input[fname][slices] = np.sqrt(np.abs(inputs[0][fname][slices] ** 2 + inputs[1][fname][slices] ** 2 + inputs[2][fname][slices] ** 2 + inputs[3][fname][slices] ** 2 + 2 * inputs[4][fname][slices] - 2 * inputs[5][fname][slices]))
             
         combined_input[fname] = np.stack(
             [out for _, out in sorted(combined_input[fname].items())]
@@ -134,10 +134,14 @@ def save_model(args, exp_dir, epoch, model_list, optimizer_list, best_val_loss, 
             'model_2': model_list[1].state_dict(),
             'model_3': model_list[2].state_dict(),
             'model_4': model_list[3].state_dict(),
+            'model_5': model_list[3].state_dict(),
+            'model_6': model_list[3].state_dict(),
             'optimizer_1': optimizer_list[0].state_dict(),
             'optimizer_2': optimizer_list[1].state_dict(),
             'optimizer_3': optimizer_list[2].state_dict(),
             'optimizer_4': optimizer_list[3].state_dict(),
+            'optimizer_5': optimizer_list[3].state_dict(),
+            'optimizer_6': optimizer_list[3].state_dict(),
             'best_val_loss': best_val_loss,
             'exp_dir': exp_dir
         },
@@ -156,13 +160,18 @@ def train(args):
     model_2 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model_3 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model_4 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
+    model_5 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
+    model_6 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
+    
     
     model_1.to(device=device)
     model_2.to(device=device)
     model_3.to(device=device)
     model_4.to(device=device)
+    model_5.to(device=device)
+    model_6.to(device=device)
     
-    model_list = [model_1, model_2, model_3, model_4]
+    model_list = [model_1, model_2, model_3, model_4, model_5, model_6]
     
     loss_type = SSIMLoss().to(device=device)
     #optimizer = torch.optim.NAdam(model.parameters(), args.lr)
@@ -174,30 +183,57 @@ def train(args):
     start_epoch = 0
 
     train_loader_list = [create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Real/', data_path_2 = 'init', args = args, shuffle=True),
-        create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
-        create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
-        create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True)
+                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
+                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
+                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
+                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_1/', data_path_2 = 'init', args = args, shuffle=True),
+                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_2/', data_path_2 = 'init', args = args, shuffle=True)
         ]
+#     train_loader_list = [create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Real/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_1/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_2/', data_path_2 = 'init', args = args, shuffle=True)
+#         ]
+    
     
     
     val_loader_list = [
         create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Real/', data_path_2 = 'init', args = args), 
         create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Imaginary/', data_path_2 = 'init', args = args), 
         create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Real/', data_path_2 = 'init', args = args), 
-        create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Imaginary/', data_path_2 = 'init', args = args)
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Imaginary/', data_path_2 = 'init', args = args),
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_1/', data_path_2 = 'init', args = args),
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_2/', data_path_2 = 'init', args = args)
         ]
-    
+#     val_loader_list = [
+#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Real/', data_path_2 = 'init', args = args), 
+#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Imaginary/', data_path_2 = 'init', args = args), 
+#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Real/', data_path_2 = 'init', args = args), 
+#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Imaginary/', data_path_2 = 'init', args = args),
+#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_1/', data_path_2 = 'init', args = args),
+#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_2/', data_path_2 = 'init', args = args)
+#         ]
+
+
+
+
     optimizer_1 = torch.optim.NAdam(model_1.parameters(), args.lr)
-    optimizer_2 = torch.optim.NAdam(model_1.parameters(), args.lr)
-    optimizer_3 = torch.optim.NAdam(model_1.parameters(), args.lr)
-    optimizer_4 = torch.optim.NAdam(model_1.parameters(), args.lr)
-    optimizer_list = [optimizer_1, optimizer_2, optimizer_3, optimizer_4]
+    optimizer_2 = torch.optim.NAdam(model_2.parameters(), args.lr)
+    optimizer_3 = torch.optim.NAdam(model_3.parameters(), args.lr)
+    optimizer_4 = torch.optim.NAdam(model_4.parameters(), args.lr)
+    optimizer_5 = torch.optim.NAdam(model_4.parameters(), args.lr)
+    optimizer_6 = torch.optim.NAdam(model_4.parameters(), args.lr)
+    optimizer_list = [optimizer_1, optimizer_2, optimizer_3, optimizer_4, optimizer_5, optimizer_6]
   
     scheduler_1 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_list[0], T_max=5, eta_min=0)
     scheduler_2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_list[1], T_max=5, eta_min=0)
     scheduler_3 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_list[2], T_max=5, eta_min=0)
     scheduler_4 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_list[3], T_max=5, eta_min=0)
-    scheduler_list = [scheduler_1, scheduler_2, scheduler_3, scheduler_4]
+    scheduler_5 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_list[4], T_max=5, eta_min=0)
+    scheduler_6 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_list[5], T_max=5, eta_min=0)
+    scheduler_list = [scheduler_1, scheduler_2, scheduler_3, scheduler_4, scheduler_5, scheduler_6]
        
     
     '''
@@ -216,6 +252,8 @@ def train(args):
         train_loss_2, train_time_2 = train_epoch(args, epoch, model_2, train_loader_list[1], optimizer_list[1], loss_type)
         train_loss_3, train_time_3 = train_epoch(args, epoch, model_3, train_loader_list[2], optimizer_list[2], loss_type)
         train_loss_4, train_time_4 = train_epoch(args, epoch, model_4, train_loader_list[3], optimizer_list[3], loss_type)
+        train_loss_5, train_time_5 = train_epoch(args, epoch, model_4, train_loader_list[4], optimizer_list[4], loss_type)
+        train_loss_6, train_time_6 = train_epoch(args, epoch, model_4, train_loader_list[5], optimizer_list[5], loss_type)
         
         val_loss, num_subjects, reconstructions, targets, inputs, val_time = validate(args, model_list=model_list,data_loader_list=val_loader_list)
         
@@ -223,14 +261,16 @@ def train(args):
         scheduler_2.step()
         scheduler_3.step()
         scheduler_4.step()
+        scheduler_5.step()
+        scheduler_6.step()
 
         val_loss_log = np.append(val_loss_log, np.array([[epoch, val_loss]]), axis=0)
         file_path = args.val_loss_dir / "val_loss_log"
         np.save(file_path, val_loss_log)
         print(f"loss file saved! {file_path}")
         
-        train_loss = (train_loss_1 + train_loss_2 + train_loss_3 + train_loss_4) / len(model_list)
-        train_time = (train_time_1 + train_time_2 + train_time_3 + train_time_4)
+        train_loss = (train_loss_1 + train_loss_2 + train_loss_3 + train_loss_4 + train_loss_5 + train_loss_6 ) / len(model_list)
+        train_time = (train_time_1 + train_time_2 + train_time_3 + train_time_4 + train_time_5 + train_time_6 )
         
         train_loss = torch.tensor(train_loss).cuda(non_blocking=True)
         val_loss = torch.tensor(val_loss).cuda(non_blocking=True)
