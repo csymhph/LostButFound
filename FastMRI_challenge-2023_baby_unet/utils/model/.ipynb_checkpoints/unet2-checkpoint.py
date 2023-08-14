@@ -22,7 +22,7 @@ class Unet2(nn.Module):
         #self.up4 = Up(64, 32, drop_prob)
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight)
+                nn.init.xavier_normal_(m.weight)
                 
 
 
