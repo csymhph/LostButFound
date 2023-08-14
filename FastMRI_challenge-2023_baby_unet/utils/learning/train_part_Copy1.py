@@ -10,6 +10,7 @@ from utils.data.load_data import create_data_loaders
 from utils.common.utils import save_reconstructions, ssim_loss
 from utils.common.loss_function import SSIMLoss
 from utils.model.unet import Unet
+from utils.model.unet2 import Unet2
 
 def ifft2(img, norm='ortho'):
     return np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(img), norm=norm))
@@ -134,14 +135,14 @@ def save_model(args, exp_dir, epoch, model_list, optimizer_list, best_val_loss, 
             'model_2': model_list[1].state_dict(),
             'model_3': model_list[2].state_dict(),
             'model_4': model_list[3].state_dict(),
-            'model_5': model_list[3].state_dict(),
-            'model_6': model_list[3].state_dict(),
+            'model_5': model_list[4].state_dict(),
+            'model_6': model_list[5].state_dict(),
             'optimizer_1': optimizer_list[0].state_dict(),
             'optimizer_2': optimizer_list[1].state_dict(),
             'optimizer_3': optimizer_list[2].state_dict(),
             'optimizer_4': optimizer_list[3].state_dict(),
-            'optimizer_5': optimizer_list[3].state_dict(),
-            'optimizer_6': optimizer_list[3].state_dict(),
+            'optimizer_5': optimizer_list[4].state_dict(),
+            'optimizer_6': optimizer_list[5].state_dict(),
             'best_val_loss': best_val_loss,
             'exp_dir': exp_dir
         },
@@ -160,8 +161,8 @@ def train(args):
     model_2 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model_3 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model_4 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
-    model_5 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
-    model_6 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
+    model_5 = Unet2(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
+    model_6 = Unet2(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     
     
     model_1.to(device=device)
@@ -223,8 +224,8 @@ def train(args):
     optimizer_2 = torch.optim.NAdam(model_2.parameters(), args.lr)
     optimizer_3 = torch.optim.NAdam(model_3.parameters(), args.lr)
     optimizer_4 = torch.optim.NAdam(model_4.parameters(), args.lr)
-    optimizer_5 = torch.optim.NAdam(model_4.parameters(), args.lr)
-    optimizer_6 = torch.optim.NAdam(model_4.parameters(), args.lr)
+    optimizer_5 = torch.optim.NAdam(model_5.parameters(), args.lr)
+    optimizer_6 = torch.optim.NAdam(model_6.parameters(), args.lr)
     optimizer_list = [optimizer_1, optimizer_2, optimizer_3, optimizer_4, optimizer_5, optimizer_6]
   
     scheduler_1 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_list[0], T_max=5, eta_min=0)

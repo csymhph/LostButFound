@@ -3,7 +3,7 @@ from torch import nn
 from torch.nn import functional as F
 
 
-class Unet(nn.Module):
+class Unet2(nn.Module):
 
     def __init__(self, in_chans, out_chans, drop_prob = 0.0):
         super().__init__()
@@ -70,14 +70,14 @@ class ConvBlock(nn.Module): #ResBlock이지만 수정의 편의를 위해 이름
         self.layers = nn.Sequential(
             nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
+            nn.Tanh(),
             nn.Dropout2d(drop_prob),
             nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
+            nn.Tanh(),
             nn.Dropout2d(drop_prob)
         )
-        self.relu = nn.ReLU()
+        
 
     def forward(self, x):
         return self.layers(x)
@@ -93,7 +93,7 @@ class Down(nn.Module):
             nn.MaxPool2d(2),
             ConvBlock(in_chans, out_chans, drop_prob)
         )
-        self.relu = nn.ReLU()
+
         self.s = nn.Sequential(
             nn.Conv2d(in_chans, out_chans, kernel_size=1, padding=0, stride=1),
             nn.MaxPool2d(2)
@@ -133,7 +133,7 @@ class SpatialAttention(nn.Module):
         self.out_chans = out_chans
         self.layers = nn.Sequential(
             nn.Conv2d(1, int_chans, kernel_size=kernel_size, padding=kernel_size//2, bias=False),
-            nn.ReLU(inplace=True),
+            nn.Tanh(),
             nn.Conv2d(int_chans, 1, kernel_size=kernel_size, padding=kernel_size//2, bias=False),
             nn.Sigmoid()
         )
@@ -158,14 +158,14 @@ class ChannelAttention(nn.Module):
 
         self.fc1 = nn.Linear(in_chans // 2, int_chans, bias=False)
         self.fc2 = nn.Linear(int_chans, in_chans // 2, bias=False)
-        self.relu = nn.ReLU(inplace=True)
+        self.Tanh = nn.Tanh()
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         batch, channels, _, _ = x.size()
 
         avg_out = self.avg_pool(x).view(batch, channels)
-        avg_out = self.fc2(self.relu(self.fc1(avg_out))).view(batch, channels, 1, 1)
+        avg_out = self.fc2(self.Tanh(self.fc1(avg_out))).view(batch, channels, 1, 1)
 
         #max_out = self.max_pool(x).view(batch, channels)
         #max_out = self.fc2(self.relu(self.fc1(max_out))).view(batch, channels, 1, 1)

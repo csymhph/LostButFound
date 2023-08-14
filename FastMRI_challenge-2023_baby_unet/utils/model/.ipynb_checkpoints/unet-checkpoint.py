@@ -20,6 +20,10 @@ class Unet(nn.Module):
         self.up2 = Up(128, 64, drop_prob)
         self.up3 = Up(64, 32, drop_prob)
         #self.up4 = Up(64, 32, drop_prob)
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight)
+                
 
 
         
