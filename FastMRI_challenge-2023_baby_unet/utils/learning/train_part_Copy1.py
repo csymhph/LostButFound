@@ -10,7 +10,6 @@ from utils.data.load_data import create_data_loaders
 from utils.common.utils import save_reconstructions, ssim_loss
 from utils.common.loss_function import SSIMLoss
 from utils.model.unet import Unet
-from utils.model.unet2 import Unet2
 
 def ifft2(img, norm='ortho'):
     return np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(img), norm=norm))
@@ -23,14 +22,17 @@ def train_epoch(args, epoch, model, data_loader, optimizer, loss_type):
     start_epoch = start_iter = time.perf_counter()
     len_loader = len(data_loader)
     total_loss = 0.
-
+    
     for iter, data in enumerate(data_loader):
+        
+        
         input, target, maximum, _, _ = data
         input = input.cuda(non_blocking=True)
         target = target.cuda(non_blocking=True)
         maximum = maximum.cuda(non_blocking=True)
-   
+
         output=model(input)
+    
     
         # Mask output and target, when epoch exceeds 30
         #if epoch>30:
@@ -99,7 +101,11 @@ def validate(args, model_list, data_loader_list):
    
     for fname in reconstructions[0]:
         for slices in range(reconstructions[0][fname].shape[0]):
-            combined_recon[fname][slices] = np.sqrt(np.abs(reconstructions[0][fname][slices] ** 2 + reconstructions[1][fname][slices] ** 2 + reconstructions[2][fname][slices] ** 2 + reconstructions[3][fname][slices] ** 2 + 2 * reconstructions[4][fname][slices] - 2 * reconstructions[5][fname][slices]))
+            a = reconstructions[4][fname][slices]
+            b = reconstructions[5][fname][slices]
+            a = a - np.abs(ifft2(np.conjugate(fft2(a))))
+            b = b - np.abs(ifft2(np.conjugate(fft2(b))))
+            combined_recon[fname][slices] = np.sqrt(np.abs(reconstructions[0][fname][slices] ** 2 + reconstructions[1][fname][slices] ** 2 + reconstructions[2][fname][slices] ** 2 + reconstructions[3][fname][slices] ** 2 + 2 * a - 2 * b))
             
         combined_recon[fname] = np.stack(
             [out for _, out in sorted(combined_recon[fname].items())]
@@ -107,7 +113,11 @@ def validate(args, model_list, data_loader_list):
 
     for fname in targets[0]:
         for slices in range(reconstructions[0][fname].shape[0]):
-            combined_target[fname][slices] = np.sqrt(np.abs(targets[0][fname][slices] ** 2 + targets[1][fname][slices] ** 2 + targets[2][fname][slices] ** 2 + targets[3][fname][slices] ** 2 + 2 * targets[4][fname][slices] - 2 * targets[5][fname][slices]))
+            a = targets[4][fname][slices]
+            b = targets[5][fname][slices]
+            a = a - np.abs(ifft2(np.conjugate(fft2(a))))
+            b = b - np.abs(ifft2(np.conjugate(fft2(b))))
+            combined_target[fname][slices] = np.sqrt(np.abs(targets[0][fname][slices] ** 2 + targets[1][fname][slices] ** 2 + targets[2][fname][slices] ** 2 + targets[3][fname][slices] ** 2 + 2 * a - 2 * b))
         
         combined_target[fname] = np.stack(
             [out for _, out in sorted(combined_target[fname].items())]
@@ -115,7 +125,11 @@ def validate(args, model_list, data_loader_list):
         
     for fname in inputs[0]:
         for slices in range(reconstructions[0][fname].shape[0]):
-            combined_input[fname][slices] = np.sqrt(np.abs(inputs[0][fname][slices] ** 2 + inputs[1][fname][slices] ** 2 + inputs[2][fname][slices] ** 2 + inputs[3][fname][slices] ** 2 + 2 * inputs[4][fname][slices] - 2 * inputs[5][fname][slices]))
+            a = inputs[4][fname][slices]
+            b = inputs[5][fname][slices]
+            a = a - np.abs(ifft2(np.conjugate(fft2(a))))
+            b = b - np.abs(ifft2(np.conjugate(fft2(b))))
+            combined_input[fname][slices] = np.sqrt(np.abs(inputs[0][fname][slices] ** 2 + inputs[1][fname][slices] ** 2 + inputs[2][fname][slices] ** 2 + inputs[3][fname][slices] ** 2 + 2 * a - 2 * b))
             
         combined_input[fname] = np.stack(
             [out for _, out in sorted(combined_input[fname].items())]
@@ -161,8 +175,8 @@ def train(args):
     model_2 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model_3 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     model_4 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
-    model_5 = Unet2(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
-    model_6 = Unet2(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
+    model_5 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
+    model_6 = Unet(in_chans = args.in_chans, out_chans = args.out_chans, drop_prob = args.drop_prob)
     
     
     model_1.to(device=device)
@@ -183,39 +197,39 @@ def train(args):
     best_val_loss = 1.
     start_epoch = 0
 
+#     train_loader_list = [create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Real/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_1/', data_path_2 = 'init', args = args, shuffle=True),
+#                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_2/', data_path_2 = 'init', args = args, shuffle=True)
+#         ]
     train_loader_list = [create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Real/', data_path_2 = 'init', args = args, shuffle=True),
                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
                         create_data_loaders(data_path_1 = '/root/Datastorage_train/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
-                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_1/', data_path_2 = 'init', args = args, shuffle=True),
-                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_2/', data_path_2 = 'init', args = args, shuffle=True)
+                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_pos_1/', data_path_2 = 'init', args = args, shuffle=True),
+                        create_data_loaders(data_path_1 = '/root/Datastorage_train/Comp_pos_2/', data_path_2 = 'init', args = args, shuffle=True)
         ]
-#     train_loader_list = [create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Real/', data_path_2 = 'init', args = args, shuffle=True),
-#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
-#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Real/', data_path_2 = 'init', args = args, shuffle=True),
-#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Imaginary/', data_path_2 = 'init', args = args, shuffle=True),
-#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_1/', data_path_2 = 'init', args = args, shuffle=True),
-#                         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_2/', data_path_2 = 'init', args = args, shuffle=True)
+    
+    
+    
+#     val_loader_list = [
+#         create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Real/', data_path_2 = 'init', args = args), 
+#         create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Imaginary/', data_path_2 = 'init', args = args), 
+#         create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Real/', data_path_2 = 'init', args = args), 
+#         create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Imaginary/', data_path_2 = 'init', args = args),
+#         create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_1/', data_path_2 = 'init', args = args),
+#         create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_2/', data_path_2 = 'init', args = args)
 #         ]
-    
-    
-    
     val_loader_list = [
         create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Real/', data_path_2 = 'init', args = args), 
         create_data_loaders(data_path_1 = '/root/Datastorage_val/Real/Imaginary/', data_path_2 = 'init', args = args), 
         create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Real/', data_path_2 = 'init', args = args), 
         create_data_loaders(data_path_1 = '/root/Datastorage_val/Imaginary/Imaginary/', data_path_2 = 'init', args = args),
-        create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_1/', data_path_2 = 'init', args = args),
-        create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_2/', data_path_2 = 'init', args = args)
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_pos_1/', data_path_2 = 'init', args = args),
+        create_data_loaders(data_path_1 = '/root/Datastorage_val/Comp_pos_2/', data_path_2 = 'init', args = args)
         ]
-#     val_loader_list = [
-#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Real/', data_path_2 = 'init', args = args), 
-#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Real/Imaginary/', data_path_2 = 'init', args = args), 
-#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Real/', data_path_2 = 'init', args = args), 
-#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Imaginary/Imaginary/', data_path_2 = 'init', args = args),
-#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_1/', data_path_2 = 'init', args = args),
-#         create_data_loaders(data_path_1 = '/root/Datastorage_check/Comp_2/', data_path_2 = 'init', args = args)
-#         ]
 
 
 

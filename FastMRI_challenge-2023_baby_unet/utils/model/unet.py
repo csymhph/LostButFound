@@ -24,9 +24,6 @@ class Unet(nn.Module):
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight)
                 
-
-
-        
         self.last_block = nn.Conv2d(32, out_chans, kernel_size=1)
         self.dropout = drop_prob
 

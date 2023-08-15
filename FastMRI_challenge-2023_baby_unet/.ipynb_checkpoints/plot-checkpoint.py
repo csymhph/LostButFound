@@ -1,7 +1,7 @@
 import h5py
 import matplotlib.pyplot as plt
 
-f = h5py.File('../result/test_Unet/reconstructions_val/brain_acc4_179.h5', 'r')
+f = h5py.File('../result/rudanet/reconstructions_val/brain_acc8_187.h5', 'r')
 # f = h5py.File('YOUR FILE PATH', 'r')
 
 input = f['input']

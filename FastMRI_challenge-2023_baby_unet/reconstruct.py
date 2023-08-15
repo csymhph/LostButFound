@@ -12,7 +12,8 @@ def parse():
     
     parser.add_argument('--in-chans', type=int, default=1, help='Size of input channels for network')
     parser.add_argument('--out-chans', type=int, default=1, help='Size of output channels for network')
-    parser.add_argument("--input_key", type=str, default='image_input', help='Name of input key')
+    parser.add_argument("--input_key", type=str, default='kspace', help='Name of input key')
+    parser.add_argument("--mask")
 
     args = parser.parse_args()
     return args
@@ -23,13 +24,13 @@ if __name__ == '__main__':
     args.exp_dir = '../result' / args.net_name / 'checkpoints'
     
     # acc4
-    args.data_path = args.path_data / "acc4" / "image"    
+    args.data_path = args.path_data / "acc4" / "kspace"    
     args.forward_dir = '../result' / args.net_name / 'reconstructions_leaderboard' / "acc4"
     print(args.forward_dir)
     forward(args)
     
     # acc8
-    args.data_path = args.path_data / "acc8" / "image"    
+    args.data_path = args.path_data / "acc8" / "kspace"    
     args.forward_dir = '../result' / args.net_name / 'reconstructions_leaderboard' / "acc8"
     print(args.forward_dir)
     forward(args)

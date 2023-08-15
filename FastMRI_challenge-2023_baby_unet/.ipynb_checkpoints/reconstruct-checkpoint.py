@@ -23,13 +23,13 @@ if __name__ == '__main__':
     args.exp_dir = '../result' / args.net_name / 'checkpoints'
     
     # acc4
-    args.data_path = args.path_data / "acc4" / "image"    
+    args.data_path = args.path_data / "acc4" / "kspace"    
     args.forward_dir = '../result' / args.net_name / 'reconstructions_leaderboard' / "acc4"
     print(args.forward_dir)
     forward(args)
     
     # acc8
-    args.data_path = args.path_data / "acc8" / "image"    
+    args.data_path = args.path_data / "acc8" / "kspace"    
     args.forward_dir = '../result' / args.net_name / 'reconstructions_leaderboard' / "acc8"
     print(args.forward_dir)
     forward(args)
